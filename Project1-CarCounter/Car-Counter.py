@@ -27,7 +27,7 @@ mask = cv2.imread("mask.png")
 tracker = Sort(max_age=20, min_hits=3, iou_threshold=0.3)
 totalCount = []
 
-limits = [400, 297, 673, 297]
+limits = [400, 297, 490, 297, 590, 297, 673, 297]
 
 while True:
 
@@ -37,6 +37,7 @@ while True:
 
     imgGraphics = cv2.imread("graphics.png", cv2.IMREAD_UNCHANGED)
     img = cvzone.overlayPNG(img, imgGraphics, (0, 0))
+    imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     detections = np.empty((0, 5))
 
@@ -60,7 +61,7 @@ while True:
 
             if currentClass == "car" or currentClass =="truck" or currentClass == "bus"\
                     or currentClass == "motorbike" and conf >0.3:
-                cvzone.putTextRect(img, f'{classNames[cls]} {conf}', (max(0, x1), max(35, y1)), scale=0.6, thickness=1,
+                cvzone.putTextRect(imgGray, f'{classNames[cls]} {conf}', (max(0, x1), max(35, y1)), scale=0.6, thickness=1,
                                    offset=3)
                 cvzone.cornerRect(img, (x1, y1, w, h), l=5)
                 currentArray= np.array([x1, y1, x2, y2, conf])
@@ -68,6 +69,10 @@ while True:
 
     resultsTracker = tracker.update(detections)  # put the bounding box variables in array
     cv2.line(img, (limits[0], limits[1]), (limits[2], limits[3]), (0, 0, 255),5)
+    cv2.line(img, (limits[2], limits[3]), (limits[4], limits[5]), (0, 255, 255),5)
+    cv2.line(img, (limits[4], limits[5]), (limits[6], limits[7]), (255, 0, 255),5)
+
+
 
     for result in resultsTracker:
         x1, y1, x2, y2, Id = map(int, result)
@@ -79,9 +84,16 @@ while True:
     cv2.circle(img,(cx, cy), 5, (255, 0, 255), cv2.FILLED)
 
     if limits[0] < cx < limits[2] and limits[1]-20 < cy < limits[3]+20:
-        if totalCount.count(Id) == 0:
             totalCount.append(Id)
             cv2.line(img, (limits[0], limits[1]), (limits[2], limits[3]), (0, 255, 0), 5)
+
+    if limits[2] < cx < limits[4] and limits[3] - 20 < cy < limits[5] + 20:
+            totalCount.append(Id)
+            cv2.line(img, (limits[2], limits[3]), (limits[4], limits[5]), (0, 255, 0), 5)
+
+    if limits[4] < cx < limits[6] and limits[5] - 20 < cy < limits[7] + 20:
+            totalCount.append(Id)
+            cv2.line(img, (limits[4], limits[5]), (limits[6], limits[7]), (0, 255, 0), 5)
 
     # cvzone.putTextRect(img, f' Count: {len(totalCount)}', (50, 50))
     cv2.putText(img, str(len(totalCount)), (255, 100), cv2.FONT_HERSHEY_PLAIN,5, (255, 0, 0), 8)
